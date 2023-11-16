@@ -1,0 +1,74 @@
+version: '3'
+
+volumes:
+  rabbit:
+  redis_data:
+  django_static:
+
+networks:
+  document_network:
+
+
+services:
+  django:
+    container_name: gdocs
+    build: config/
+    restart: "always"
+    command: bash -c "python3 manage.py migrate && python3 manage.py collectstatic --noinput && uwsgi --ini uwsgi/uwsgi.ini"
+    env_file:
+      - .env
+    volumes:
+      - django_static:/usr/src/movies/static/
+    expose:
+      - "8000"
+    networks:
+      - document_network
+
+  worker:
+    restart: "always"
+    build: config/
+    command: bash -c "celery -A config.celery worker -l info"
+    depends_on:
+      - rabbit
+    env_file:
+      - .env
+    links:
+      - rabbit
+    networks:
+      - document_network
+
+  rabbit:
+    image: rabbitmq:3.12.8
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - rabbit:/data
+    ports:
+      - "5672:5672"
+    networks:
+      - document_network
+
+  redis:
+    image: redis:7.2.3
+    restart: always
+    command: redis-server
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - document_network
+
+  nginx:
+    build: nginx/
+    restart: "always"
+    volumes:
+      - django_static:/data/static/
+    depends_on:
+      - django
+    ports:
+      - "8080:80"
+    networks:
+      - document_network
+
