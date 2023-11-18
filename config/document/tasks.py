@@ -15,7 +15,7 @@ def create_document(data: dict):
         data (dict): Dictionary with name of the document, and it's content.
 
     Returns:
-        dict(): Return status code and link to document.
+        (dict): Return status code and link to document.
 
     """
     try:
