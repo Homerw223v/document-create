@@ -44,5 +44,5 @@ def create_document(data: dict):
             'value': 'anyoneWithLink',
         }
         service_drive.permissions().create(fileId=document_id, body=permission).execute()
-        return {'status': status.HTTP_200_OK, 'link': f'https://drive.google.com/file/d/{document_id}/edit'}
+        return {'status': status.HTTP_201_CREATED, 'link': f'https://drive.google.com/file/d/{document_id}/edit'}
 
